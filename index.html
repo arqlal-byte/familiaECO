@@ -8,35 +8,66 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Familia ECO">
 <title>Familia ECO</title>
-<link rel="manifest" href="./manifest.json?v=3">
-<link rel="apple-touch-icon" href="./assets/apple-touch-icon.png?v=3">
-<link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png?v=3">
-<link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png?v=3">
+<link rel="manifest" href="./manifest.json?v=5">
+<link rel="apple-touch-icon" href="./assets/apple-touch-icon.png?v=5">
+<link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png?v=5">
+<link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png?v=5">
 <style>
-html,body{margin:0;width:100%;height:100%;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-#install{height:100%;display:grid;place-items:center;color:#203026}
-.card{width:min(86vw,420px);text-align:center}
-.logo{width:170px;height:170px;border-radius:38px;display:block;margin:0 auto 22px;box-shadow:0 10px 30px rgba(0,0,0,.14)}
-h1{margin:0 0 8px;font-size:31px} p{margin:0;color:#667069;font-size:16px;line-height:1.4}
-#appframe{display:none;border:0;width:100%;height:100%;background:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#203026}
+body{padding:28px 18px}
+#install{max-width:520px;margin:0 auto;text-align:center}
+.logo{width:112px;height:112px;border-radius:25px;display:block;margin:0 auto 14px;box-shadow:0 7px 22px rgba(0,0,0,.13)}
+h1{margin:0;font-size:29px;line-height:1.1}
+.lead{margin:7px 0 22px;color:#68736c;font-size:16px}
+.guide{background:#fff;border:1px solid #dde5df;border-radius:20px;padding:18px;text-align:left;margin:13px 0}
+.guide-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.badge{width:52px;height:52px;min-width:52px;border-radius:50%;background:#e8f3ea;display:grid;place-items:center;font-size:29px;font-weight:700;color:#2e7d32}
+.guide h2{font-size:19px;margin:0 0 2px}
+.guide small{color:#768079;font-size:13px}
+.step{display:flex;align-items:center;gap:11px;margin:11px 0;font-size:15px;line-height:1.3}
+.n{width:27px;height:27px;min-width:27px;border-radius:50%;background:#2e7d32;color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800}
+.share{font-size:25px;line-height:1;font-weight:600}
+.menu{font-size:27px;line-height:1;font-weight:800;letter-spacing:1px}
+.once{margin:18px 0 4px;color:#657069;font-size:14px}
+#appframe{display:none;border:0;width:100%;height:100%;position:absolute;inset:0;background:#fff}
+@media(min-width:700px){body{padding-top:42px}}
 </style>
 </head>
 <body>
-<section id="install">
- <div class="card">
-   <img class="logo" src="./assets/icon-192.png?v=3" alt="Familia ECO">
-   <h1>Familia ECO</h1>
-   <p>Agrega esta página al Dock o a la pantalla de inicio.</p>
- </div>
-</section>
+<main id="install">
+  <img class="logo" src="./assets/icon-192.png?v=5" alt="Familia ECO">
+  <h1>Instala Familia ECO</h1>
+  <p class="lead">Ten acceso directo desde tu celular. Solo necesitas hacerlo una vez.</p>
+
+  <section class="guide">
+    <div class="guide-head">
+      <div class="badge">□↑</div>
+      <div><h2>iPhone / iPad</h2><small>Desde Safari</small></div>
+    </div>
+    <div class="step"><span class="n">1</span><span>Pulsa el botón <strong>Compartir</strong> <span class="share">□↑</span></span></div>
+    <div class="step"><span class="n">2</span><span>Selecciona <strong>“Añadir a pantalla de inicio”</strong>.</span></div>
+    <div class="step"><span class="n">3</span><span>Pulsa <strong>“Añadir”</strong>.</span></div>
+  </section>
+
+  <section class="guide">
+    <div class="guide-head">
+      <div class="badge menu">⋮</div>
+      <div><h2>Android</h2><small>Desde Chrome</small></div>
+    </div>
+    <div class="step"><span class="n">1</span><span>Pulsa el menú <strong class="menu">⋮</strong> del navegador.</span></div>
+    <div class="step"><span class="n">2</span><span>Selecciona <strong>“Instalar aplicación”</strong> o <strong>“Añadir a pantalla de inicio”</strong>.</span></div>
+    <div class="step"><span class="n">3</span><span>Confirma <strong>“Instalar”</strong>.</span></div>
+  </section>
+
+  <p class="once">Después abre Familia ECO desde el nuevo icono de tu pantalla.</p>
+</main>
+
 <iframe id="appframe" title="Familia ECO" allow="clipboard-read; clipboard-write"></iframe>
 <script>
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=3').catch(()=>{});
-
-const standalone = window.matchMedia('(display-mode: standalone)').matches ||
-                   window.navigator.standalone === true;
-
+const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 if (standalone) {
+  document.body.style.padding='0';
   document.getElementById('install').style.display='none';
   const f=document.getElementById('appframe');
   f.style.display='block';
