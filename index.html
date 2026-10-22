@@ -98,6 +98,8 @@ body{margin:0;background:#e9edef;color:var(--eco-text);font-family:-apple-system
 #install .share{font-size:25px;line-height:1;font-weight:600}
 #install .menu{font-size:27px;line-height:1;font-weight:800;letter-spacing:1px}
 #install .once{margin:18px 0 4px;color:#657069;font-size:14px}
+#familiaContinuar{display:block;width:100%;min-height:51px;margin:19px auto 0;padding:12px 16px;border:0;border-radius:14px;background:#26323c;color:#fff;font:inherit;font-size:16px;font-weight:850;cursor:pointer}
+#familiaContinuar:focus-visible{outline:3px solid #e30613;outline-offset:3px}
 #appContent{display:none}
 html.familia-standalone #install{display:none}
 html.familia-standalone #appContent{display:block}
@@ -105,9 +107,15 @@ html.familia-standalone #appContent{display:block}
 </style>
 <script>
 (function(){
-  if(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true){
-    document.documentElement.classList.add('familia-standalone');
+  function mostrarSiInstalada_(){
+    if(navigator.standalone === true ||
+       window.matchMedia('(display-mode: standalone)').matches ||
+       window.matchMedia('(display-mode: fullscreen)').matches){
+      document.documentElement.classList.add('familia-standalone');
+    }
   }
+  mostrarSiInstalada_();
+  window.addEventListener('pageshow', mostrarSiInstalada_);
 })();
 </script>
 </head>
@@ -127,6 +135,7 @@ html.familia-standalone #appContent{display:block}
     <div class="step"><span class="n">3</span><span>Confirma <strong>“Instalar”</strong>.</span></div>
   </section>
   <p class="once">Después abre Familia ECO desde el nuevo icono de tu pantalla.</p>
+  <button id="familiaContinuar" type="button">Abrir Familia ECO sin instalar</button>
 </main>
 <div id="appContent" class="shell">
   <header>
@@ -204,6 +213,10 @@ function cargarActividades_(){
   timer=setTimeout(()=>{limpiar();error_()},15000);
 }
 cargarActividades_();
+document.getElementById('familiaContinuar').addEventListener('click',function(){
+  document.documentElement.classList.add('familia-standalone');
+  window.scrollTo(0,0);
+});
 if('serviceWorker' in navigator && window.isSecureContext){
   window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).catch(()=>{}));
 }
