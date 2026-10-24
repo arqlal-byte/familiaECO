@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Familia ECO">
   <title>Familia ECO</title>
-  <link rel="manifest" href="./manifest.json?v=7">
-<link rel="apple-touch-icon" href="./icon.png?v=7">
-<link rel="icon" type="image/png" href="./icon.png?v=7">
+  <link rel="manifest" href="./manifest.json?v=8">
+<link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png?v=8">
+<link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png?v=8">
 
   <style>
 :root{--eco-red:#e30613;--eco-dark:#26323c;--eco-darkest:#16212b;--eco-bg:#f5f6f7;--eco-text:#172126;--eco-muted:#68737b;--eco-border:#e1e5e8;--eco-cta:#984a32}
@@ -36,6 +36,12 @@ body{margin:0;background:#e9edef;color:var(--eco-text);font-family:-apple-system
 .count{display:inline-block;flex:0 0 auto;background:#fff;color:#58656e;border:1px solid var(--eco-border);padding:7px 12px;border-radius:99px;font-weight:750;font-size:12px;white-space:nowrap}
 .feed{width:min(100%,760px);margin:0 auto;padding:18px 20px 30px}
 .status{background:#fff;border:1px solid var(--eco-border);border-radius:18px;padding:28px 22px;color:#62707a;text-align:center;font-size:16px;line-height:1.5}
+.status strong{display:block;font-size:19px;color:var(--eco-dark);margin-bottom:6px}
+.status p{margin:0 0 18px}
+.retryButton{min-height:48px;padding:12px 25px;border:0;border-radius:12px;background:var(--eco-dark);color:#fff;font:inherit;font-weight:800;cursor:pointer}
+.retryButton:focus-visible{outline:3px solid var(--eco-red);outline-offset:3px}
+.networkNotice{width:min(100% - 40px,720px);margin:22px auto 0;padding:13px 18px;border:1px solid #d7b29f;border-radius:14px;background:#fff6ed;color:#713d22;text-align:center;font-size:15px;font-weight:650}
+.networkNotice[hidden]{display:none!important}
 .card{background:#fff;border:1px solid var(--eco-border);border-radius:24px;overflow:hidden;margin:0 0 22px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
 .cover{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:center top;background:#edf0f2}
 .card .body{padding:23px}
@@ -149,6 +155,7 @@ html.familia-standalone #appContent{display:block}
       <p class="subtitle">Actividades y experiencias para compartir en familia.</p>
     </div>
   </section>
+  <div id="familiaNetworkNotice" class="networkNotice" role="status" aria-live="polite" hidden>Sin conexión a internet. Conéctate para consultar las actividades familiares.</div>
   <section class="contentIntro" aria-labelledby="actividadesTitulo">
     <div>
       <span class="introLabel">Actividades familiares</span>
@@ -190,28 +197,59 @@ function render_(r){
   }).join('');
 }
 function error_(){
-  document.getElementById('activityCount').textContent='Sin conexión';
-  document.getElementById('feed').innerHTML='<div class="status" role="alert">No fue posible cargar las actividades en este momento.</div>';
+  const desconectado=navigator.onLine===false;
+  document.getElementById('activityCount').textContent=desconectado?'Sin conexión':'No disponible';
+  const feed=document.getElementById('feed');
+  feed.innerHTML='<div class="status" role="alert"><strong>'+
+    (desconectado?'Sin conexión a internet':'No fue posible cargar las actividades')+
+    '</strong><p>'+(desconectado?'Conéctate a internet y vuelve a intentarlo.':'Comprueba tu conexión y vuelve a intentarlo.')+
+    '</p><button id="familiaReintentar" type="button" class="retryButton">Reintentar</button></div>';
+  document.getElementById('familiaReintentar').addEventListener('click',cargarActividades_);
+}
+function actualizarEstadoRed_(){
+  document.getElementById('familiaNetworkNotice').hidden=navigator.onLine!==false;
 }
 const API_URL='https://script.google.com/macros/s/AKfycbz15pUaMnYUXDkQWlUdRAYq5_qhU2fiRK4Qxy60Ta62049109RvFbJxqXMe-O6NuWsTUg/exec';
+let limpiarSolicitudActiva_=null;
+let secuenciaSolicitud_=0;
 function cargarActividades_(){
-  const callback='familiaEcoCallback_'+Date.now();
+  if(limpiarSolicitudActiva_)limpiarSolicitudActiva_();
+  document.getElementById('activityCount').textContent='Consultando…';
+  document.getElementById('feed').innerHTML='<div class="status" role="status">Cargando actividades familiares…</div>';
+  actualizarEstadoRed_();
+  if(navigator.onLine===false){error_();return;}
+  const callback='familiaEcoCallback_'+Date.now()+'_'+(++secuenciaSolicitud_);
   const script=document.createElement('script');
   let terminado=false;
   let timer=null;
   const limpiar=()=>{
     if(terminado)return;
     terminado=true;
-    if(timer) clearTimeout(timer);
+    if(timer)clearTimeout(timer);
+    if(limpiarSolicitudActiva_===limpiar)limpiarSolicitudActiva_=null;
     try{delete window[callback]}catch(_){window[callback]=undefined}
     script.remove();
   };
-  window[callback]=r=>{limpiar();render_(r)};
-  script.onerror=()=>{limpiar();error_()};
+  limpiarSolicitudActiva_=limpiar;
+  window[callback]=r=>{
+    if(terminado)return;
+    limpiar();
+    if(r&&r.ok===true&&Array.isArray(r.actividades))render_(r);
+    else error_();
+  };
+  script.onerror=()=>{if(terminado)return;limpiar();error_()};
   script.src=API_URL+'?api=actividades&callback='+encodeURIComponent(callback)+'&_='+Date.now();
+  timer=setTimeout(()=>{if(terminado)return;limpiar();error_()},15000);
   document.head.appendChild(script);
-  timer=setTimeout(()=>{limpiar();error_()},15000);
 }
+window.addEventListener('offline',()=>{
+  actualizarEstadoRed_();
+  if(limpiarSolicitudActiva_){limpiarSolicitudActiva_();error_();}
+});
+window.addEventListener('online',()=>{
+  actualizarEstadoRed_();
+  if(document.getElementById('familiaReintentar'))cargarActividades_();
+});
 cargarActividades_();
 document.getElementById('familiaContinuar').addEventListener('click',function(){
   document.documentElement.classList.add('familia-standalone');
